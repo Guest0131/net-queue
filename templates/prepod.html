@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ru">
+   
+<head>
+<title>Ваша ЭО</title>
+<link rel="stylesheet" href="../static/css/prepod.css" rel="stylesheet">
+      <link href="../static/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+      <script src="../static/js/bootstrap.min.js"></script>
+      <script src="../static/js/jquery.min.js"></script>   
+     <script src="../static/js/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
+</head>
+<body>
+<nav class="navbar navbar-light bg-light justify-content-between">
+  <a class="navbar-brand">Электронная очередь </a>
+  <form class="form-inline" method='POST' action='/prepod_api'>
+    <a class="navbar-brand" >{{ name }}</a>
+    <input class="btn btn-outline-danger my-2 my-sm-0" type="submit" value="Выйти" name="action" />
+  </form>
+</nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+			<table class="table table-hover" id="myTable">
+			  <thead>
+				<tr>
+				  <th scope="col" class="text-center">#</th>
+				  <th scope="col">ФИО</th>
+				  <th scope="col">Группа</th>
+				  <th scope="col" colspan="2">Статус</th>
+				</tr>
+			  </thead>
+			  <tbody>
+           {% for item in data %}
+             <tr id="{{ loop.index  - 1}}" > 
+               <td class="index">{{ loop.index }}</td>
+               <td>{{ item.name }}</td>
+               <td>{{ item.group }}</td>
+               <td>
+                  <select class="form-select form-select-lg mb-3" id="{{ loop.index  - 1}}">
+                  {% if item.status == "wait" %}
+                     <option value="wait" selected>Ожидает</option>
+                     <option value="work">Принимается</option>
+                  {% else %}
+                     <option value="wait">Ожидает</option>
+                     <option value="work" selected>Принимается</option>
+                  {% endif %}
+                  </select>
+               </td>
+               <td>
+               <form class="form-inline" method='POST' action='/prepod_api'>
+                  <input type="text" class="specialId" hidden value="{{ loop.index - 1}}" name='id' />
+                  <input type="submit" class="btn btn-success" name='action' value='Принять'>
+                  <input type="submit" class="btn btn-danger" name='action' value='Удалить'>
+               </form>
+               </td>
+             </tr> 
+           {% endfor %}
+			  </tbody>
+			</table>
+        </div>
+      </div>
+    </div>
+    <script> 
+      var fixHelperModified = function(e, tr) {
+         var $originals = tr.children();
+         var $helper = tr.clone();
+         $helper.children().each(function(index) {
+               $(this).width($originals.eq(index).width());
+            });
+            return $helper;
+         },
+         updateIndex = function(e, ui) {
+            $('td.index', ui.item.parent()).each(function (i) {
+               $(this).html(i+1);
+            });
+		
+		};
+
+      $("#myTable tbody").sortable({
+         helper: fixHelperModified,
+         stop: updateIndex
+      }).disableSelection();
+      
+      $("tbody").sortable({
+         distance: 5,
+         delay: 100,
+         opacity: 0.6,
+         cursor: 'move',
+         update: function() {
+            var trsIndexes = $('tr').slice(1);
+            var counter = 0;
+            for (var item of trsIndexes) {
+               if (item.id != counter) {
+                  $.ajax({
+                        url : '/prepod_api',
+                        method: 'post',             
+                        dataType: 'html',
+                        data: {
+                           action: 'update_index',
+                           old : item.id,
+                           new : counter
+                           }
+                     })
+                  break;
+               }
+               counter++;
+            }
+            counter = 0;
+            for (var item of trsIndexes) { 
+               item.id = counter;
+               item.getElementsByClassName('specialId')[0].value = counter;
+               item.getElementsByClassName('specialId')[0].attributes[2].value = counter;
+               item.getElementsByClassName('specialId')[0].attributes[2].textContent = counter;
+               item.getElementsByClassName('specialId')[0].attributes[2].nodeValue = counter++;               
+               }
+         }
+		});
+
+      
+
+      var i, $selects = $('select');
+      
+      for (i=0; i < $selects.length; i++) {
+         if ($selects[i].value == 'wait') {
+            $selects[i].classList = ["wait"]
+         } else {
+            $selects[i].classList = ["work"]
+         }
+      }
+
+      $('select').change(function() {
+         var indexVal  = $(this).parent().parent()[0].id;
+         var statusVal;
+
+         if ($(this).val() == 'wait') {
+            statusVal = 'wait';
+            $(this).removeClass();
+            $(this).addClass('wait');
+         } else {
+            statusVal = 'work';
+            $(this).removeClass();
+            $(this).addClass('work');
+         }
+
+         $.ajax({
+            url : '/prepod_api',
+            method: 'post',             
+            dataType: 'html',
+            data: {
+               action: 'update_status',
+               index : indexVal,
+               status : statusVal
+               }
+         })
+      })
+
+    </script>
+   </body>
+</html>

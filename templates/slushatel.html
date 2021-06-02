@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>ЭО Основная страница</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+      <link href="../static/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+      <script src="../static/js/bootstrap.min.js"></script>
+      <script src="../static/js/jquery.min.js"></script>   
+     <script src="../static/js/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-light bg-light justify-content-between">
+      <a class="navbar-brand">Электронная очередь </a>
+      <form class="form-inline" method='POST' action='/slushatel_api'>
+        <a class="navbar-brand" >{{ name }}</a>
+        <input class="btn btn-outline-danger my-2 my-sm-0" type="submit" value="Выйти" name="action" />
+      </form>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <table class="table table-hover" id="myTable" cellspacing="0" width="100%">
+            <tr>
+              <th scope="col" class="th-sm">ФИО</th>
+              <th scope="col" class="th-sm">Кафедра</th>
+              <th scope="col" class="th-sm">Номер в очереди</th>
+            </tr>
+            {% for item in data %}
+            <tr>
+              <td>{{ item.fullname }}</td>
+              <td>{{ item.group }}</td>
+              <td>{{ item.queue_index }}</td>
+            </tr>
+            {% endfor %}
+          </table>
+      </div>
+      </div>
+
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addQuery">
+      Создать заявку на очередь
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addQuery" tabindex="-1" role="dialog" aria-labelledby="addQueryTitle" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addQueryTitle">Форма заявки</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-group" method="POST" action='/slushatel_api'>
+              <div class="form-group">
+                <label for="selectPrepod">Выберите преподавателя</label>
+                <select multiple class="form-control" id="selectPrepod" name="prepod_name">
+                {% for k, v in prepod_names.items() %}
+                  <option value="{{ k }}">{{ v.fullname }} ( {{ v.group }} )</option>
+                {% endfor %}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <input type="submit" class="btn btn-primary" name='action' value='Встать в очередь'>
+              </div>
+            </form>
+          </div>      
+        </div>
+      </div>
+    </div>
+<script src="../static/js/bootstrap.min.js"></script>
+      <script src="../static/js/jquery.min.js"></script>  
+  </body>
+</html>
